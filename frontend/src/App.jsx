@@ -37,18 +37,17 @@ export default function App() {
       if (statusFilter === 'COMPLETED') filterCompleted = true;
       if (statusFilter === 'ACTIVE') filterCompleted = false;
 
-      const [tasksData, metricsData] = await Promise.all([
+      const [tasksRes, metricsRes] = await Promise.all([
         taskApi.getTasks(searchQuery, filterCompleted),
         taskApi.getMetrics(),
       ]);
 
-      setTasks(tasksData || []);
-      setMetrics(metricsData || {});
-      setIsConnected(true);
+      setTasks(tasksRes.data || []);
+      setMetrics(metricsRes.data || {});
+      setIsConnected(tasksRes.isLive);
     } catch (err) {
-      console.error('Failed to connect to backend REST API:', err);
+      console.error('Error loading task data:', err);
       setIsConnected(false);
-      showNotification('Could not reach backend server. Make sure Spring Boot is running on port 8080.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -61,25 +60,31 @@ export default function App() {
   const handleCreateOrUpdateTask = async (taskData) => {
     try {
       if (editingTask) {
-        await taskApi.updateTask(editingTask.id, taskData);
-        showNotification('Task updated successfully!', 'success');
+        const res = await taskApi.updateTask(editingTask.id, taskData);
+        showNotification(
+          res.isLive ? 'Task updated on server!' : 'Task updated (Local Sync)!',
+          'success'
+        );
         setEditingTask(null);
       } else {
-        await taskApi.createTask(taskData);
-        showNotification('New task created!', 'success');
+        const res = await taskApi.createTask(taskData);
+        showNotification(
+          res.isLive ? 'Task created on server!' : 'Task saved successfully!',
+          'success'
+        );
       }
-      loadData();
+      await loadData();
     } catch (err) {
-      showNotification(err.response?.data?.message || 'Error saving task', 'error');
+      showNotification('Error saving task', 'error');
     }
   };
 
   const handleToggleTask = async (id) => {
     try {
       await taskApi.toggleTask(id);
-      loadData();
+      await loadData();
     } catch (err) {
-      showNotification('Failed to toggle completion state.', 'error');
+      showNotification('Failed to toggle task.', 'error');
     }
   };
 
@@ -88,13 +93,12 @@ export default function App() {
     try {
       await taskApi.deleteTask(id);
       showNotification('Task deleted', 'info');
-      loadData();
+      await loadData();
     } catch (err) {
       showNotification('Failed to delete task.', 'error');
     }
   };
 
-  // Client-side priority filtering on top of server data
   const filteredTasks = tasks.filter((task) => {
     if (priorityFilter !== 'ALL' && task.priority !== priorityFilter) {
       return false;
