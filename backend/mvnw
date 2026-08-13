@@ -1,0 +1,9 @@
+#!/bin/sh
+# ----------------------------------------------------------------------------
+# Maven Start Up Batch script
+# ----------------------------------------------------------------------------
+
+echo "Executing Maven Wrapper..."
+
+# Find maven-wrapper.jar
+exec java -jar .mvn/wrapper/maven-wrapper.jar "$@"
