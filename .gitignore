@@ -1,0 +1,21 @@
+# Node & Vite frontend
+node_modules/
+dist/
+.vite/
+*.log
+npm-debug.log*
+
+# Java & Maven backend
+target/
+*.class
+*.jar
+*.war
+
+# Environment & IDE
+.env
+.env.local
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
