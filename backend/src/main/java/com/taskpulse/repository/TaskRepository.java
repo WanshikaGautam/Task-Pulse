@@ -10,13 +10,16 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    List<Task> findAllByOrderByCreatedAtDesc();
+    List<Task> findByUserIdOrderByCreatedAtDesc(Long userId);
 
-    List<Task> findByCompletedOrderByCreatedAtDesc(boolean completed);
+    List<Task> findByUserIdAndCompletedOrderByCreatedAtDesc(Long userId, boolean completed);
 
-    List<Task> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String title, String description);
+    List<Task> findByUserIdAndTitleContainingIgnoreCaseOrUserIdAndDescriptionContainingIgnoreCase(
+            Long userId1, String title, Long userId2, String description);
 
-    long countByCompleted(boolean completed);
+    long countByUserId(Long userId);
 
-    long countByPriorityAndCompleted(Priority priority, boolean completed);
+    long countByUserIdAndCompleted(Long userId, boolean completed);
+
+    long countByUserIdAndPriorityAndCompleted(Long userId, Priority priority, boolean completed);
 }

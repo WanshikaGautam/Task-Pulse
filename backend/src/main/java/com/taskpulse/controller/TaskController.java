@@ -25,9 +25,10 @@ public class TaskController {
 
     @GetMapping
     public ResponseEntity<List<Task>> getAllTasks(
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "1") Long userId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean completed) {
-        return ResponseEntity.ok(taskService.getAllTasks(search, completed));
+        return ResponseEntity.ok(taskService.getAllTasks(userId, search, completed));
     }
 
     @GetMapping("/{id}")
@@ -36,14 +37,19 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
-        Task createdTask = taskService.createTask(task);
+    public ResponseEntity<Task> createTask(
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "1") Long userId,
+            @Valid @RequestBody Task task) {
+        Task createdTask = taskService.createTask(userId, task);
         return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @Valid @RequestBody Task task) {
-        Task updatedTask = taskService.updateTask(id, task);
+    public ResponseEntity<Task> updateTask(
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "1") Long userId,
+            @PathVariable Long id,
+            @Valid @RequestBody Task task) {
+        Task updatedTask = taskService.updateTask(userId, id, task);
         return ResponseEntity.ok(updatedTask);
     }
 
@@ -60,7 +66,8 @@ public class TaskController {
     }
 
     @GetMapping("/metrics")
-    public ResponseEntity<ProductivityMetricsDto> getMetrics() {
-        return ResponseEntity.ok(taskService.getProductivityMetrics());
+    public ResponseEntity<ProductivityMetricsDto> getMetrics(
+            @RequestHeader(value = "X-User-Id", required = false, defaultValue = "1") Long userId) {
+        return ResponseEntity.ok(taskService.getProductivityMetrics(userId));
     }
 }

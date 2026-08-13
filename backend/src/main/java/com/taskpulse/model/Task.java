@@ -12,6 +12,9 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "user_id")
+    private Long userId;
+
     @NotBlank(message = "Task title cannot be blank")
     @Column(nullable = false)
     private String title;
@@ -38,12 +41,13 @@ public class Task {
     public Task() {
     }
 
-    public Task(String title, String description, Priority priority, String category) {
+    public Task(String title, String description, Priority priority, String category, Long userId) {
         this.title = title;
         this.description = description;
         this.priority = priority != null ? priority : Priority.MEDIUM;
         this.category = category != null && !category.trim().isEmpty() ? category : "General";
         this.completed = false;
+        this.userId = userId;
     }
 
     @PrePersist
@@ -57,14 +61,20 @@ public class Task {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getTitle() {

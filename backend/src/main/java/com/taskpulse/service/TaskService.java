@@ -19,14 +19,18 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
-    public List<Task> getAllTasks(String search, Boolean completed) {
+    public List<Task> getAllTasks(Long userId, String search, Boolean completed) {
+        if (userId == null) {
+            return List.of();
+        }
         if (search != null && !search.trim().isEmpty()) {
-            return taskRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(search.trim(), search.trim());
+            return taskRepository.findByUserIdAndTitleContainingIgnoreCaseOrUserIdAndDescriptionContainingIgnoreCase(
+                    userId, search.trim(), userId, search.trim());
         }
         if (completed != null) {
-            return taskRepository.findByCompletedOrderByCreatedAtDesc(completed);
+            return taskRepository.findByUserIdAndCompletedOrderByCreatedAtDesc(userId, completed);
         }
-        return taskRepository.findAllByOrderByCreatedAtDesc();
+        return taskRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
     public Task getTaskById(Long id) {
@@ -34,7 +38,8 @@ public class TaskService {
                 .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
     }
 
-    public Task createTask(Task task) {
+    public Task createTask(Long userId, Task task) {
+        task.setUserId(userId);
         if (task.getPriority() == null) {
             task.setPriority(Priority.MEDIUM);
         }
@@ -44,7 +49,7 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    public Task updateTask(Long id, Task taskDetails) {
+    public Task updateTask(Long userId, Long id, Task taskDetails) {
         Task task = getTaskById(id);
         task.setTitle(taskDetails.getTitle());
         task.setDescription(taskDetails.getDescription());
@@ -69,12 +74,15 @@ public class TaskService {
         taskRepository.delete(task);
     }
 
-    public ProductivityMetricsDto getProductivityMetrics() {
-        long total = taskRepository.count();
-        long completed = taskRepository.countByCompleted(true);
+    public ProductivityMetricsDto getProductivityMetrics(Long userId) {
+        if (userId == null) {
+            return new ProductivityMetricsDto(0, 0, 0, 0.0, 0);
+        }
+        long total = taskRepository.countByUserId(userId);
+        long completed = taskRepository.countByUserIdAndCompleted(userId, true);
         long pending = total - completed;
         double rate = total > 0 ? Math.round(((double) completed / total) * 1000.0) / 10.0 : 0.0;
-        long highPriorityPending = taskRepository.countByPriorityAndCompleted(Priority.HIGH, false);
+        long highPriorityPending = taskRepository.countByUserIdAndPriorityAndCompleted(userId, Priority.HIGH, false);
 
         return new ProductivityMetricsDto(total, completed, pending, rate, highPriorityPending);
     }
